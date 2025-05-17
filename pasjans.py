@@ -52,6 +52,9 @@ class StosRezerwowy:
         if (self.indeks >= len(self.karty)):
             self.indeks = 0
 
+    def usun_karte(self):
+        self.karty.pop(self.indeks)
+
 class StosGlowny:
     def __init__(self, karty):
         self.kolumny = {"1" : [karty[0]],
@@ -95,7 +98,19 @@ class StosGlowny:
 
         return False
 
+    def dodaj_karte(self, karta, kolumna):
+        self.kolumny[kolumna].append(karta)
 
+def przeniesienie_karty_z_rezerwowego_do_glownego(kolumna):
+    pierwsza_karta = stosRezerwowy.zwroc_pierwsza_karte()
+    if (stosGlowny.czy_mozna_przeniesc_karte_do_kolumny(pierwsza_karta, kolumna)):
+        # usun karte z rezerwowego
+        stosRezerwowy.usun_karte()
+        # dodaj do glownego
+        stosGlowny.dodaj_karte(pierwsza_karta, kolumna)
+        return True
+    return False
+   
 
 
 
@@ -118,13 +133,11 @@ aktualnaKarta = stosRezerwowy.zwroc_pierwsza_karte()
 ruch = input("Ruch: ")
 while (ruch != "q"):
     stosRezerwowy.przewin()
-    aktualnaKarta = stosRezerwowy.zwroc_pierwsza_karte()
     stosRezerwowy.pokaz_stos_rezerwowy()
     stosGlowny.pokaz_stos_glowny2()
 
-    for k in range(1, 8):
-        print(f"{stosGlowny.czy_mozna_przeniesc_karte_do_kolumny(aktualnaKarta, str(k))} ", end="")
-    print("")
 
+    for k in range(1, 8):
+        przeniesienie_karty_z_rezerwowego_do_glownego(str(k))
     
     ruch = input("Ruch: ")
