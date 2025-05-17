@@ -3,6 +3,9 @@ init(autoreset=True)  # automatyczne resetowanie kolorów po każdej linii
 
 import random
 
+kolory = ["kier", "karo", "pik", "trefl"]
+wartosci = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "W", "D", "K"]
+
 class Karta:
     ikony = {"kier" : "♥", 
              "karo" : "♦",
@@ -17,14 +20,13 @@ class Karta:
         if (self.kolor == "kier" or self.kolor == "karo"):
             print(Fore.RED + f"{self.ikony[self.kolor]} {self.wartosc}", end="")
         else:
-            print(Fore.BLACK + f"{self.ikony[self.kolor]} {self.wartosc}", end="")
+            print(Fore.WHITE + f"{self.ikony[self.kolor]} {self.wartosc}", end="")
         
 class Talia:
-    kolory = ["kier", "karo", "pik", "trefl"]
-    wartosci = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "W", "D", "K"]
+
 
     def __init__(self):
-        self.karty = [Karta(kolor, wartosc) for kolor in self.kolory for wartosc in self.wartosci]
+        self.karty = [Karta(kolor, wartosc) for kolor in kolory for wartosc in wartosci]
         random.shuffle(self.karty)
 
     def pokaz_talie(self):
@@ -41,6 +43,9 @@ class StosRezerwowy:
         #     karta.pokaz_karte()
         self.karty[self.indeks].pokaz_karte()
         print("\n")
+
+    def zwroc_pierwsza_karte(self):
+        return self.karty[self.indeks]
     
     def przewin(self):
         self.indeks += 1
@@ -76,6 +81,23 @@ class StosGlowny:
                 print("\t", end="")
             print("")
 
+    def czy_mozna_przeniesc_karte_do_kolumny(self, nowaKarta, kolumna):
+        kartaNaStosieGlownym = self.kolumny[kolumna][-1]
+        if (kartaNaStosieGlownym.kolor == "kier" or kartaNaStosieGlownym.kolor == "karo"):
+            if (nowaKarta.kolor == "kier" or nowaKarta.kolor == "karo"): return False
+        else:
+            if (nowaKarta.kolor == "pik" or nowaKarta.kolor == "trefl"): return False
+        
+        if (kartaNaStosieGlownym.wartosc == "A" or nowaKarta.wartosc == "K"): return False
+
+        indeksWartosciKartyNaStosieGlownym = wartosci.index(kartaNaStosieGlownym.wartosc)
+        if (nowaKarta.wartosc == wartosci[indeksWartosciKartyNaStosieGlownym - 1]): return True
+
+        return False
+
+
+
+
 
 class StosyKoncowe:
     def __init__(self):
@@ -91,8 +113,18 @@ stosGlowny = StosGlowny(talia.karty[24:])
 stosRezerwowy.pokaz_stos_rezerwowy()
 stosGlowny.pokaz_stos_glowny2()
 
+aktualnaKarta = stosRezerwowy.zwroc_pierwsza_karte()
+
 ruch = input("Ruch: ")
 while (ruch != "q"):
     stosRezerwowy.przewin()
+    aktualnaKarta = stosRezerwowy.zwroc_pierwsza_karte()
     stosRezerwowy.pokaz_stos_rezerwowy()
+    stosGlowny.pokaz_stos_glowny2()
+
+    for k in range(1, 8):
+        print(f"{stosGlowny.czy_mozna_przeniesc_karte_do_kolumny(aktualnaKarta, str(k))} ", end="")
+    print("")
+
+    
     ruch = input("Ruch: ")
