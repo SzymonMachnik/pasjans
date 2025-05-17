@@ -21,10 +21,13 @@ class Karta:
         if (self.otwarta == False):
             print("XXX", end="")
             return
-        if (self.kolor == "kier" or self.kolor == "karo"):
+        if (self.czy_czerwona_karta()):
             print(Fore.RED + f"{self.ikony[self.kolor]} {self.wartosc}", end="")
         else:
             print(Fore.WHITE + f"{self.ikony[self.kolor]} {self.wartosc}", end="")
+        
+    def czy_czerwona_karta(self):
+        return self.kolor in ["kier", "karo"]
         
 class Talia:
 
@@ -49,7 +52,7 @@ class StosRezerwowy:
             self.indeks = 0
         if (len(self.karty) > 0):
             self.karty[self.indeks].pokaz_karte()
-        else: print("\t", end="")
+        # else: print("\t", end="")
         
 
     def zwroc_pierwsza_karte(self):
@@ -96,12 +99,13 @@ class StosGlowny:
             print("")
 
     def czy_mozna_przeniesc_karte_do_kolumny(self, nowaKarta, kolumna):
-        if (len(stosGlowny.kolumny[kolumna]) <= 0): return True
+        if (len(self.kolumny[kolumna]) == 0):
+            if (nowaKarta.wartosc == "K"): return True
+            else: return False
         kartaNaStosieGlownym = self.kolumny[kolumna][-1]
-        if (kartaNaStosieGlownym.kolor == "kier" or kartaNaStosieGlownym.kolor == "karo"):
-            if (nowaKarta.kolor == "kier" or nowaKarta.kolor == "karo"): return False
-        else:
-            if (nowaKarta.kolor == "pik" or nowaKarta.kolor == "trefl"): return False
+
+        # Sprawdzenie czy karty są innego koloru
+        if (kartaNaStosieGlownym.czy_czerwona_karta() == nowaKarta.czy_czerwona_karta()): return False
         
         if (kartaNaStosieGlownym.wartosc == "A" or nowaKarta.wartosc == "K"): return False
 
@@ -124,21 +128,22 @@ class StosGlowny:
 
     def czy_mozna_przeniesc_karty_z_glownego_do_glownego(self, kolumnaBierz, kolumnaDodaj, iloscKart):
         if (self.czy_mozna_zabrac(kolumnaBierz, iloscKart) == False): return False
-        if (len(self.kolumny[kolumnaDodaj]) <= 0): return True
-        pierwszaKartaNaKtoraDodaj = self.kolumny[kolumnaDodaj][-1]
         ostatniaKartaDoBrania = self.kolumny[kolumnaBierz][-iloscKart]
-        # Czy kolor będzie przeciwny
-        if (ostatniaKartaDoBrania.kolor == "kier" or ostatniaKartaDoBrania.kolor == "karo"):
-            if (pierwszaKartaNaKtoraDodaj.kolor == "kier" or pierwszaKartaNaKtoraDodaj.kolor == "karo"): return False
-        else:
-            if (pierwszaKartaNaKtoraDodaj.kolor == "pik" or pierwszaKartaNaKtoraDodaj.kolor == "trefl"): return False
+        # if (len(self.kolumny[kolumnaDodaj]) == 0): 
+        #     if (ostatniaKartaDoBrania.wartosc == "K"): return True
+        #     else: return False
+        # pierwszaKartaNaKtoraDodaj = self.kolumny[kolumnaDodaj][-1]
         
-        if (pierwszaKartaNaKtoraDodaj.wartosc == "A" or ostatniaKartaDoBrania.wartosc == "K"): return False
+        # # Sprawdzenie czy karty są innego koloru
+        # if (pierwszaKartaNaKtoraDodaj.czy_czerwona_karta() == ostatniaKartaDoBrania.czy_czerwona_karta()): return False
 
-        indeksWartosciPierwszejKartyNaKtoraDodaj = wartosci.index(pierwszaKartaNaKtoraDodaj.wartosc)
-        if (ostatniaKartaDoBrania.wartosc == wartosci[indeksWartosciPierwszejKartyNaKtoraDodaj - 1]): return True
+        # if (pierwszaKartaNaKtoraDodaj.wartosc == "A" or ostatniaKartaDoBrania.wartosc == "K"): return False
 
-        return False
+        # indeksWartosciPierwszejKartyNaKtoraDodaj = wartosci.index(pierwszaKartaNaKtoraDodaj.wartosc)
+        # if (ostatniaKartaDoBrania.wartosc == wartosci[indeksWartosciPierwszejKartyNaKtoraDodaj - 1]): return True
+
+
+        return self.czy_mozna_przeniesc_karte_do_kolumny(ostatniaKartaDoBrania, kolumnaDodaj)
 
     def odkryjOstatniaKarte(self, kolumna):
         if (len(self.kolumny[kolumna]) > 0):
@@ -206,10 +211,14 @@ class StosyKoncowe:
             self.trefl[-1].pokaz_karte()
         print("\t", end="")
 
+    def czy_wygrana(self):
+        return all(len(stos) == 13 for stos in [self.karo, self.kier, self.pik, self.trefl])
+
 
 def przeniesienie_karty_z_rezerwowego_do_glownego(kolumna):
     if (len(stosRezerwowy.karty) <= 0): return False
     pierwsza_karta = stosRezerwowy.zwroc_pierwsza_karte()
+   
     if (stosGlowny.czy_mozna_przeniesc_karte_do_kolumny(pierwsza_karta, kolumna)):
         stosRezerwowy.usun_karte()
         stosGlowny.dodaj_karte(pierwsza_karta, kolumna)
@@ -226,7 +235,6 @@ def przeniesienie_karty_z_rezerwowego_do_koncowego():
     return False 
 
 def przeniesienie_karty_z_glownego_do_koncowego(kolumna):
-    if (len(stosRezerwowy.karty) <= 0): return False
     if (len(stosGlowny.kolumny[kolumna]) <= 0): return False
     nowa_karta = stosGlowny.kolumny[kolumna][-1]
     if (stosyKoncowe.czy_mozna_przeniesc_karte(nowa_karta)):
@@ -235,42 +243,53 @@ def przeniesienie_karty_z_glownego_do_koncowego(kolumna):
         return True
     return False 
     
-
-
-talia = Talia()
-stosRezerwowy = StosRezerwowy(talia.karty[0:24])
-stosGlowny = StosGlowny(talia.karty[24:])
-stosyKoncowe = StosyKoncowe()
-stosRezerwowy.pokaz_stos_rezerwowy()
-stosyKoncowe.pokaz_stosy_koncowe()
-print("\n")
-stosGlowny.pokaz_stos_glowny2()
-
-aktualnaKarta = stosRezerwowy.zwroc_pierwsza_karte()
-
-ruch = ""
-while (ruch != "q"):
-    ruch = input("Ruch: ")
-
-    if (ruch == "p"):
-        stosRezerwowy.przewin()
-    elif (ruch == "rk"):
-        przeniesienie_karty_z_rezerwowego_do_koncowego()
-    elif (len(ruch) == 4 and ruch[0:2] == "rg" and "1" <= ruch[3] and ruch[3] <= "7"):
-        przeniesienie_karty_z_rezerwowego_do_glownego(ruch[3])
-    elif (len(ruch) == 4 and ruch[0:2] == "gk" and "1" <= ruch[3] and ruch[3] <= "7"):
-        przeniesienie_karty_z_glownego_do_koncowego(ruch[3]) 
-    #gg 6 7 2
-    elif ruch.startswith("gg") and ruch[3] in "1234567" and ruch[5] in "1234567":
-        try:
-            ilosc = int(ruch[7:])  # od znaku 7 do końca
-            if 1 <= ilosc <= 13:
-                stosGlowny.przeniesienie_kart_z_glownego_do_glownego(ruch[3], ruch[5], ilosc)
-        except ValueError:
-            print("Nieprawidłowa liczba kart.")
-
+def drukuj_stan_gry():
+    print("\n====================================================|\n")
+    print("Stos rezerwowy (r)\tStosy końcowe (k)")
     stosRezerwowy.pokaz_stos_rezerwowy()
     stosyKoncowe.pokaz_stosy_koncowe()
     print("\n")
+    print("Stos główny (g)")
     stosGlowny.pokaz_stos_glowny2()
-    
+
+if __name__ == "__main__":
+
+    talia = Talia()
+    stosRezerwowy = StosRezerwowy(talia.karty[0:24])
+    stosGlowny = StosGlowny(talia.karty[24:])
+    stosyKoncowe = StosyKoncowe()
+    drukuj_stan_gry()
+
+    aktualnaKarta = stosRezerwowy.zwroc_pierwsza_karte()
+
+    ruch = ""
+    wygrana = False
+    while (ruch != "q" and wygrana == False):
+        ruch = input("Ruch: ").strip().lower()
+
+        if (ruch == "p"):
+            stosRezerwowy.przewin()
+        elif (ruch == "rk"):
+            przeniesienie_karty_z_rezerwowego_do_koncowego()
+        elif (len(ruch) == 4 and ruch[0:2] == "rg" and "1" <= ruch[3] and ruch[3] <= "7"):
+            przeniesienie_karty_z_rezerwowego_do_glownego(ruch[3])
+        elif (len(ruch) == 4 and ruch[0:2] == "gk" and "1" <= ruch[3] and ruch[3] <= "7"):
+            przeniesienie_karty_z_glownego_do_koncowego(ruch[3]) 
+        #gg 6 7 2
+        elif (len(ruch) >= 8 and ruch.startswith("gg") and ruch[3] in "1234567" and ruch[5] in "1234567"):
+            try:
+                ilosc = int(ruch[7:])  # od znaku 7 do końca
+                if 1 <= ilosc <= 13:
+                    stosGlowny.przeniesienie_kart_z_glownego_do_glownego(ruch[3], ruch[5], ilosc)
+            except ValueError:
+                print("Nieprawidłowa liczba kart.")
+
+        drukuj_stan_gry()
+
+        wygrana = stosyKoncowe.czy_wygrana()
+
+    if (wygrana):
+        print("GRATULACJE WYGRAŁEŚ!!!")
+    else:
+        print("DOBRZE CI POSZŁO. SPRÓBUJ JESZCZE RAZ!")
+        
