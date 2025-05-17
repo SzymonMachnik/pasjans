@@ -6,19 +6,20 @@ import random
 kolory = ["kier", "karo", "pik", "trefl"]
 wartosci = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "W", "D", "K"]
 
+
 class Karta:
-    ikony = {"kier" : "♥", 
-             "karo" : "♦",
-             "pik" : "♠",
-             "trefl" : "♣"}
 
     def __init__(self, kolor, wartosc):
         self.kolor = kolor
         self.wartosc = wartosc
-        self.otwarta = False
+        self.odwrocona = False
+        self.ikony = {"kier" : "♥", 
+                      "karo" : "♦",
+                      "pik" : "♠",
+                      "trefl" : "♣"}
 
     def pokaz_karte(self):
-        if (self.otwarta == False):
+        if (self.odwrocona == False):
             print("XXX", end="")
             return
         if (self.czy_czerwona_karta()):
@@ -29,42 +30,37 @@ class Karta:
     def czy_czerwona_karta(self):
         return self.kolor in ["kier", "karo"]
         
+
 class Talia:
-
-
     def __init__(self):
         self.karty = [Karta(kolor, wartosc) for kolor in kolory for wartosc in wartosci]
         random.shuffle(self.karty)
 
-    def pokaz_talie(self):
-        for karta in self.karty:
-            karta.pokaz_karte()
 
 class StosRezerwowy:  
     def __init__(self, karty):
         self.karty = karty
         self.indeks = 0
+
         for karta in karty:
-            karta.otwarta = True
+            karta.odwrocona = True
 
     def pokaz_stos_rezerwowy(self):
         if (self.indeks >= len(self.karty)):
             self.indeks = 0
+            random.shuffle(self.karty)
         if (len(self.karty) > 0):
-            self.karty[self.indeks].pokaz_karte()
-        # else: print("\t", end="")
-        
+            self.karty[self.indeks].pokaz_karte()        
 
     def zwroc_pierwsza_karte(self):
         return self.karty[self.indeks]
     
     def przewin(self):
         self.indeks += 1
-        if (self.indeks >= len(self.karty)):
-            self.indeks = 0
 
     def usun_karte(self):
         self.karty.pop(self.indeks)
+
 
 class StosGlowny:
     def __init__(self, karty):
@@ -77,15 +73,9 @@ class StosGlowny:
                         "7" : karty[21:]}
         
         for kolumna in range(1, 8):
-            self.kolumny[str(kolumna)][-1].otwarta = True
+            self.kolumny[str(kolumna)][-1].odwrocona = True
     
     def pokaz_stos_glowny(self):
-        for kolumna in range(1, 8):
-            for karta in self.kolumny[str(kolumna)]:
-                karta.pokaz_karte()
-            print("")
-    
-    def pokaz_stos_glowny2(self):
         maksymalna_liczba_kart_w_kolumnie = 0
         for kolumna in range(1, 8):
             if (len(self.kolumny[str(kolumna)]) > maksymalna_liczba_kart_w_kolumnie):
@@ -123,31 +113,18 @@ class StosGlowny:
 
     def czy_mozna_zabrac(self, kolumnaBierz, iloscKart):
         if (iloscKart > len(self.kolumny[kolumnaBierz]) or iloscKart <= 0): return False
-        if (self.kolumny[kolumnaBierz][-iloscKart].otwarta == False): return False
+        if (self.kolumny[kolumnaBierz][-iloscKart].odwrocona == False): return False
         return True
 
     def czy_mozna_przeniesc_karty_z_glownego_do_glownego(self, kolumnaBierz, kolumnaDodaj, iloscKart):
         if (self.czy_mozna_zabrac(kolumnaBierz, iloscKart) == False): return False
         ostatniaKartaDoBrania = self.kolumny[kolumnaBierz][-iloscKart]
-        # if (len(self.kolumny[kolumnaDodaj]) == 0): 
-        #     if (ostatniaKartaDoBrania.wartosc == "K"): return True
-        #     else: return False
-        # pierwszaKartaNaKtoraDodaj = self.kolumny[kolumnaDodaj][-1]
-        
-        # # Sprawdzenie czy karty są innego koloru
-        # if (pierwszaKartaNaKtoraDodaj.czy_czerwona_karta() == ostatniaKartaDoBrania.czy_czerwona_karta()): return False
-
-        # if (pierwszaKartaNaKtoraDodaj.wartosc == "A" or ostatniaKartaDoBrania.wartosc == "K"): return False
-
-        # indeksWartosciPierwszejKartyNaKtoraDodaj = wartosci.index(pierwszaKartaNaKtoraDodaj.wartosc)
-        # if (ostatniaKartaDoBrania.wartosc == wartosci[indeksWartosciPierwszejKartyNaKtoraDodaj - 1]): return True
-
 
         return self.czy_mozna_przeniesc_karte_do_kolumny(ostatniaKartaDoBrania, kolumnaDodaj)
 
     def odkryjOstatniaKarte(self, kolumna):
         if (len(self.kolumny[kolumna]) > 0):
-            self.kolumny[kolumna][-1].otwarta = True
+            self.kolumny[kolumna][-1].odwrocona = True
 
     def przeniesienie_kart_z_glownego_do_glownego(self, kolumnaBierz, kolumnaDodaj, iloscKart):
         if (self.czy_mozna_przeniesc_karty_z_glownego_do_glownego(kolumnaBierz, kolumnaDodaj, iloscKart)):
@@ -157,10 +134,6 @@ class StosGlowny:
             self.kolumny[kolumnaDodaj].extend(kartyDoPrzeniesienia)
             return True
         return False
-
-            
-
-
 
 
 class StosyKoncowe:
@@ -250,7 +223,8 @@ def drukuj_stan_gry():
     stosyKoncowe.pokaz_stosy_koncowe()
     print("\n")
     print("Stos główny (g)")
-    stosGlowny.pokaz_stos_glowny2()
+    stosGlowny.pokaz_stos_glowny()
+
 
 if __name__ == "__main__":
 
