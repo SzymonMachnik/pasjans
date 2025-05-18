@@ -215,8 +215,40 @@ def przeniesienie_karty_z_glownego_do_koncowego(kolumna):
         stosyKoncowe.dodaj_karte(nowa_karta)
         return True
     return False 
-    
-def drukuj_stan_gry():
+
+def wyswietl_tytul():
+    print(r"""
+██████╗  █████╗ ███████╗    ██╗ █████╗ ███╗   ██╗███████╗
+██╔══██╗██╔══██╗██╔════╝    ██║██╔══██╗████╗  ██║██╔════╝
+██████╔╝███████║███████╗    ██║███████║██╔██╗ ██║███████╗
+██╔═══╝ ██╔══██║╚════██║    ██║██╔══██║██║╚██╗██║╚════██║
+██║     ██║  ██║███████║██████║██║  ██║██║ ╚████║███████║
+╚═╝     ╚═╝  ╚═╝╚══════╝╚═════╝╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝""")
+
+def wyswietl_instrukcje():
+    print(f"""
+I N S T R U K C J A   S T E R O W A N I A
+
+Ruchy ogólne:
+    - p       ➤ Przewiń kartę w stosie rezerwowym
+    - q       ➤ Zakończ grę
+    - h       ➤ Wyświetl pomoc (tę instrukcję)
+
+Ruchy ze stosu rezerwowego:
+    - rk      ➤ Przenieś kartę do stosu końcowego
+    - rg X    ➤ Przenieś kartę do kolumny głównej X (1–7)
+
+Ruchy z kolumny głównej:
+    - gk X    ➤ Przenieś kartę z kolumny głównej X do stosu końcowego
+
+Przenoszenie między kolumnami głównymi:
+    - gg X Y Z  ➤ Przenieś Z kart z kolumny głównej X do Y
+
+Cel gry:
+    Ułóż wszystkie karty w 4 stosach końcowych od Asa do Króla w odpowiednich kolorach.
+""")
+
+def wyswietl_stan_gry():
     print("\n====================================================|\n")
     print("Stos rezerwowy (r)\tStosy końcowe (k)")
     stosRezerwowy.pokaz_stos_rezerwowy()
@@ -232,7 +264,9 @@ if __name__ == "__main__":
     stosRezerwowy = StosRezerwowy(talia.karty[0:24])
     stosGlowny = StosGlowny(talia.karty[24:])
     stosyKoncowe = StosyKoncowe()
-    drukuj_stan_gry()
+    wyswietl_tytul()
+    wyswietl_instrukcje()
+    wyswietl_stan_gry()
 
     aktualnaKarta = stosRezerwowy.zwroc_pierwsza_karte()
 
@@ -243,27 +277,37 @@ if __name__ == "__main__":
 
         if (ruch == "p"):
             stosRezerwowy.przewin()
+            wyswietl_stan_gry()
+            wygrana = stosyKoncowe.czy_wygrana()
         elif (ruch == "rk"):
             przeniesienie_karty_z_rezerwowego_do_koncowego()
+            wyswietl_stan_gry()
+            wygrana = stosyKoncowe.czy_wygrana()
         elif (len(ruch) == 4 and ruch[0:2] == "rg" and "1" <= ruch[3] and ruch[3] <= "7"):
             przeniesienie_karty_z_rezerwowego_do_glownego(ruch[3])
+            wyswietl_stan_gry()
+            wygrana = stosyKoncowe.czy_wygrana()
         elif (len(ruch) == 4 and ruch[0:2] == "gk" and "1" <= ruch[3] and ruch[3] <= "7"):
-            przeniesienie_karty_z_glownego_do_koncowego(ruch[3]) 
+            przeniesienie_karty_z_glownego_do_koncowego(ruch[3])
+            wyswietl_stan_gry()
+            wygrana = stosyKoncowe.czy_wygrana()
         #gg 6 7 2
         elif (len(ruch) >= 8 and ruch.startswith("gg") and ruch[3] in "1234567" and ruch[5] in "1234567"):
             try:
                 ilosc = int(ruch[7:])  # od znaku 7 do końca
                 if 1 <= ilosc <= 13:
                     stosGlowny.przeniesienie_kart_z_glownego_do_glownego(ruch[3], ruch[5], ilosc)
+                    wyswietl_stan_gry()
+                    wygrana = stosyKoncowe.czy_wygrana()
             except ValueError:
                 print("Nieprawidłowa liczba kart.")
-
-        drukuj_stan_gry()
-
-        wygrana = stosyKoncowe.czy_wygrana()
+        elif (ruch == "h"):
+            print("\n====================================================|\n")
+            wyswietl_instrukcje()
+        elif (ruch == "q"):
+            print("\nDOBRZE CI POSZŁO. SPRÓBUJ JESZCZE RAZ!")
+        else:
+            print("""Błędny ruch. Wybierz "h", aby wyświetlić instrukcję,""")
 
     if (wygrana):
         print("GRATULACJE WYGRAŁEŚ!!!")
-    else:
-        print("DOBRZE CI POSZŁO. SPRÓBUJ JESZCZE RAZ!")
-        
