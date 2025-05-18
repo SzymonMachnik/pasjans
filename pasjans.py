@@ -235,19 +235,19 @@ class ObslugaGry:
     I N S T R U K C J A   S T E R O W A N I A
 
     Ruchy ogólne:
-        - p       ➤ Przewiń kartę w stosie rezerwowym
-        - q       ➤ Zakończ grę
-        - h       ➤ Wyświetl pomoc (tę instrukcję)
+        - p       >> Przewiń kartę w stosie rezerwowym
+        - q       >> Zakończ grę
+        - h       >> Wyświetl pomoc (tę instrukcję)
 
     Ruchy ze stosu rezerwowego:
-        - rk      ➤ Przenieś kartę do stosu końcowego
-        - rg X    ➤ Przenieś kartę do kolumny głównej X (1–7)
+        - rk      >> Przenieś kartę do stosu końcowego
+        - rg X    >> Przenieś kartę do kolumny głównej X (1–7)
 
     Ruchy z kolumny głównej:
-        - gk X    ➤ Przenieś kartę z kolumny głównej X do stosu końcowego
+        - gk X    >> Przenieś kartę z kolumny głównej X do stosu końcowego
 
     Przenoszenie między kolumnami głównymi:
-        - gg X Y Z  ➤ Przenieś Z kart z kolumny głównej X do Y
+        - gg X Y Z  >> Przenieś Z kart z kolumny głównej X do Y
 
     Cel gry:
         Ułóż wszystkie karty w 4 stosach końcowych od Asa do Króla w odpowiednich kolorach.
@@ -309,7 +309,6 @@ if __name__ == "__main__":
             stosRezerwowy.przewin()
             obslugaGry.wyswietl_stan_gry()
             wygrana = stosyKoncowe.czy_wygrana()
-            
         elif (ruch == "rk"):
             obslugaGry.zapisz_stan()
             przeniesienie_karty_z_rezerwowego_do_koncowego()
@@ -347,7 +346,6 @@ if __name__ == "__main__":
         else:
             print("""Błędny ruch. Wybierz "h", aby wyświetlić instrukcję,""")
 
-        
 
     if (wygrana):
         print("GRATULACJE WYGRAŁEŚ!!!")
