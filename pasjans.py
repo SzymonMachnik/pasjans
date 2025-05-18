@@ -1,11 +1,12 @@
 from colorama import init, Fore
 init(autoreset=True)  # automatyczne resetowanie kolorów po każdej linii
 
+from copy import deepcopy # do zapisywania stanu gry
+
 import random
 
 kolory = ["kier", "karo", "pik", "trefl"]
 wartosci = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "W", "D", "K"]
-
 
 class Karta:
 
@@ -216,46 +217,72 @@ def przeniesienie_karty_z_glownego_do_koncowego(kolumna):
         return True
     return False 
 
-def wyswietl_tytul():
-    print(r"""
-██████╗  █████╗ ███████╗    ██╗ █████╗ ███╗   ██╗███████╗
-██╔══██╗██╔══██╗██╔════╝    ██║██╔══██╗████╗  ██║██╔════╝
-██████╔╝███████║███████╗    ██║███████║██╔██╗ ██║███████╗
-██╔═══╝ ██╔══██║╚════██║    ██║██╔══██║██║╚██╗██║╚════██║
-██║     ██║  ██║███████║██████║██║  ██║██║ ╚████║███████║
-╚═╝     ╚═╝  ╚═╝╚══════╝╚═════╝╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝""")
+class ObslugaGry:
+    def __init__(self):
+        self.historia = []
 
-def wyswietl_instrukcje():
-    print(f"""
-I N S T R U K C J A   S T E R O W A N I A
+    def wyswietl_tytul(self):
+        print(r"""
+    ██████╗  █████╗ ███████╗    ██╗ █████╗ ███╗   ██╗███████╗
+    ██╔══██╗██╔══██╗██╔════╝    ██║██╔══██╗████╗  ██║██╔════╝
+    ██████╔╝███████║███████╗    ██║███████║██╔██╗ ██║███████╗
+    ██╔═══╝ ██╔══██║╚════██║    ██║██╔══██║██║╚██╗██║╚════██║
+    ██║     ██║  ██║███████║██████║██║  ██║██║ ╚████║███████║
+    ╚═╝     ╚═╝  ╚═╝╚══════╝╚═════╝╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝""")
 
-Ruchy ogólne:
-    - p       ➤ Przewiń kartę w stosie rezerwowym
-    - q       ➤ Zakończ grę
-    - h       ➤ Wyświetl pomoc (tę instrukcję)
+    def wyswietl_instrukcje(self):
+        print(f"""
+    I N S T R U K C J A   S T E R O W A N I A
 
-Ruchy ze stosu rezerwowego:
-    - rk      ➤ Przenieś kartę do stosu końcowego
-    - rg X    ➤ Przenieś kartę do kolumny głównej X (1–7)
+    Ruchy ogólne:
+        - p       ➤ Przewiń kartę w stosie rezerwowym
+        - q       ➤ Zakończ grę
+        - h       ➤ Wyświetl pomoc (tę instrukcję)
 
-Ruchy z kolumny głównej:
-    - gk X    ➤ Przenieś kartę z kolumny głównej X do stosu końcowego
+    Ruchy ze stosu rezerwowego:
+        - rk      ➤ Przenieś kartę do stosu końcowego
+        - rg X    ➤ Przenieś kartę do kolumny głównej X (1–7)
 
-Przenoszenie między kolumnami głównymi:
-    - gg X Y Z  ➤ Przenieś Z kart z kolumny głównej X do Y
+    Ruchy z kolumny głównej:
+        - gk X    ➤ Przenieś kartę z kolumny głównej X do stosu końcowego
 
-Cel gry:
-    Ułóż wszystkie karty w 4 stosach końcowych od Asa do Króla w odpowiednich kolorach.
-""")
+    Przenoszenie między kolumnami głównymi:
+        - gg X Y Z  ➤ Przenieś Z kart z kolumny głównej X do Y
 
-def wyswietl_stan_gry():
-    print("\n====================================================|\n")
-    print("Stos rezerwowy (r)\tStosy końcowe (k)")
-    stosRezerwowy.pokaz_stos_rezerwowy()
-    stosyKoncowe.pokaz_stosy_koncowe()
-    print("\n")
-    print("Stos główny (g)")
-    stosGlowny.pokaz_stos_glowny()
+    Cel gry:
+        Ułóż wszystkie karty w 4 stosach końcowych od Asa do Króla w odpowiednich kolorach.
+    """)
+
+    def wyswietl_stan_gry(self):
+        self.wyswietl_przerwe()
+        print("Stos rezerwowy (r)\tStosy końcowe (k)")
+        stosRezerwowy.pokaz_stos_rezerwowy()
+        stosyKoncowe.pokaz_stosy_koncowe()
+        print("\n")
+        print("Stos główny (g)")
+        stosGlowny.pokaz_stos_glowny()
+
+    def wyswietl_przerwe(self):
+        print("\n====================================================|\n")
+
+    def zapisz_stan(self):
+        if len(self.historia) == 3:
+            self.historia.pop(0)  # usuwamy najstarszy stan
+        stan = (
+            deepcopy(stosRezerwowy),
+            deepcopy(stosGlowny),
+            deepcopy(stosyKoncowe)
+        )
+        self.historia.append(stan)
+
+    def cofnij_ruch(self):
+        global stosRezerwowy, stosGlowny, stosyKoncowe
+        if len(self.historia) == 0:
+            print("Brak ruchów do cofnięcia.")
+            return False
+        ostatni_stan = self.historia.pop()
+        stosRezerwowy, stosGlowny, stosyKoncowe = ostatni_stan
+        return True
 
 
 if __name__ == "__main__":
@@ -264,11 +291,13 @@ if __name__ == "__main__":
     stosRezerwowy = StosRezerwowy(talia.karty[0:24])
     stosGlowny = StosGlowny(talia.karty[24:])
     stosyKoncowe = StosyKoncowe()
-    wyswietl_tytul()
-    wyswietl_instrukcje()
-    wyswietl_stan_gry()
+    obslugaGry = ObslugaGry()
+    obslugaGry.wyswietl_tytul()
+    obslugaGry.wyswietl_instrukcje()
+    obslugaGry.wyswietl_stan_gry()
 
     aktualnaKarta = stosRezerwowy.zwroc_pierwsza_karte()
+
 
     ruch = ""
     wygrana = False
@@ -276,38 +305,49 @@ if __name__ == "__main__":
         ruch = input("Ruch: ").strip().lower()
 
         if (ruch == "p"):
+            obslugaGry.zapisz_stan()
             stosRezerwowy.przewin()
-            wyswietl_stan_gry()
+            obslugaGry.wyswietl_stan_gry()
             wygrana = stosyKoncowe.czy_wygrana()
+            
         elif (ruch == "rk"):
+            obslugaGry.zapisz_stan()
             przeniesienie_karty_z_rezerwowego_do_koncowego()
-            wyswietl_stan_gry()
+            obslugaGry.wyswietl_stan_gry()
             wygrana = stosyKoncowe.czy_wygrana()
         elif (len(ruch) == 4 and ruch[0:2] == "rg" and "1" <= ruch[3] and ruch[3] <= "7"):
+            obslugaGry.zapisz_stan()
             przeniesienie_karty_z_rezerwowego_do_glownego(ruch[3])
-            wyswietl_stan_gry()
+            obslugaGry.wyswietl_stan_gry()
             wygrana = stosyKoncowe.czy_wygrana()
         elif (len(ruch) == 4 and ruch[0:2] == "gk" and "1" <= ruch[3] and ruch[3] <= "7"):
+            obslugaGry.zapisz_stan()
             przeniesienie_karty_z_glownego_do_koncowego(ruch[3])
-            wyswietl_stan_gry()
+            obslugaGry.wyswietl_stan_gry()
             wygrana = stosyKoncowe.czy_wygrana()
         #gg 6 7 2
         elif (len(ruch) >= 8 and ruch.startswith("gg") and ruch[3] in "1234567" and ruch[5] in "1234567"):
             try:
                 ilosc = int(ruch[7:])  # od znaku 7 do końca
                 if 1 <= ilosc <= 13:
+                    obslugaGry.zapisz_stan()
                     stosGlowny.przeniesienie_kart_z_glownego_do_glownego(ruch[3], ruch[5], ilosc)
-                    wyswietl_stan_gry()
+                    obslugaGry.wyswietl_stan_gry()
                     wygrana = stosyKoncowe.czy_wygrana()
             except ValueError:
                 print("Nieprawidłowa liczba kart.")
+        elif ruch == "c":
+            if (obslugaGry.cofnij_ruch()):
+                obslugaGry.wyswietl_stan_gry()
         elif (ruch == "h"):
-            print("\n====================================================|\n")
-            wyswietl_instrukcje()
+            obslugaGry.wyswietl_przerwe()
+            obslugaGry.wyswietl_instrukcje()
         elif (ruch == "q"):
             print("\nDOBRZE CI POSZŁO. SPRÓBUJ JESZCZE RAZ!")
         else:
             print("""Błędny ruch. Wybierz "h", aby wyświetlić instrukcję,""")
+
+        
 
     if (wygrana):
         print("GRATULACJE WYGRAŁEŚ!!!")
