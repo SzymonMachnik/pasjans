@@ -3,23 +3,26 @@ init(autoreset=True)  # automatyczne resetowanie kolorów po każdej linii
 
 from copy import deepcopy # do zapisywania stanu gry
 
-import random
+import random # do tasowania kart
 
+# Definicje kolorów i wartości kart
 kolory = ["kier", "karo", "pik", "trefl"]
-wartosci = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "W", "D", "K"]
+wartosci = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
 
+# Klasa reprezentująca pojedynczą kartę
 class Karta:
 
     def __init__(self, kolor, wartosc):
         self.kolor = kolor
         self.wartosc = wartosc
-        self.odwrocona = False
+        self.odwrocona = False # Zmienna określająca, czy karta jest odwrócona do wartością góry
         self.ikony = {"kier" : "♥", 
                       "karo" : "♦",
                       "pik" : "♠",
                       "trefl" : "♣"}
 
     def pokaz_karte(self):
+        # Wyświetlenie karty: zakrytej lub odkrytej z kolorem
         if (self.odwrocona == False):
             print("XXX", end="")
             return
@@ -29,24 +32,28 @@ class Karta:
             print(Fore.WHITE + f"{self.ikony[self.kolor]} {self.wartosc}", end="")
         
     def czy_czerwona_karta(self):
+        # Sprawdzenie czy karta ma czerwony kolor
         return self.kolor in ["kier", "karo"]
         
-
+# Klasa reprezentująca talię kart
 class Talia:
     def __init__(self):
+        # Tworzenie talii kart i tasowanie
         self.karty = [Karta(kolor, wartosc) for kolor in kolory for wartosc in wartosci]
         random.shuffle(self.karty)
 
-
+# Klasa stosu rezerwowego (24 karty)
 class StosRezerwowy:  
     def __init__(self, karty):
         self.karty = karty
-        self.indeks = 0
+        self.indeks = 0 # Indeks aktualnie wyświetlanej karty
 
+        # Odkrywamy wszystkie karty w stosie rezerwowym
         for karta in karty:
             karta.odwrocona = True
 
     def pokaz_stos_rezerwowy(self):
+        # Pokazuje aktualną kartę, resetuje indeks jeśli przekroczony
         if (self.indeks >= len(self.karty)):
             self.indeks = 0
             random.shuffle(self.karty)
@@ -62,9 +69,10 @@ class StosRezerwowy:
     def usun_karte(self):
         self.karty.pop(self.indeks)
 
-
+# Klasa stosu głównego - 7 kolumn kart
 class StosGlowny:
     def __init__(self, karty):
+        # Tworzenie kolumn o rosnącej liczbie kart
         self.kolumny = {"1" : [karty[0]],
                         "2" : karty[1:3],
                         "3" : karty[3:6],
@@ -73,10 +81,12 @@ class StosGlowny:
                         "6" : karty[15:21],
                         "7" : karty[21:]}
         
+        # Odkrywamy ostatnią kartę w każdej kolumnie
         for kolumna in range(1, 8):
             self.kolumny[str(kolumna)][-1].odwrocona = True
     
     def pokaz_stos_glowny(self):
+        # Wyświetla wszystkie kolumny
         maksymalna_liczba_kart_w_kolumnie = 0
         for kolumna in range(1, 8):
             if (len(self.kolumny[str(kolumna)]) > maksymalna_liczba_kart_w_kolumnie):
@@ -90,6 +100,7 @@ class StosGlowny:
             print("")
 
     def czy_mozna_przeniesc_karte_do_kolumny(self, nowaKarta, kolumna):
+        # Sprawdza, czy karta może być dodana na szczyt wybranej kolumny
         if (len(self.kolumny[kolumna]) == 0):
             if (nowaKarta.wartosc == "K"): return True
             else: return False
@@ -113,6 +124,7 @@ class StosGlowny:
         self.odkryjOstatniaKarte(kolumna)
 
     def czy_mozna_zabrac(self, kolumnaBierz, iloscKart):
+        # Sprawdza, czy można zabrać kartę z kolumny (czy jest ona odkryta)
         if (iloscKart > len(self.kolumny[kolumnaBierz]) or iloscKart <= 0): return False
         if (self.kolumny[kolumnaBierz][-iloscKart].odwrocona == False): return False
         return True
@@ -136,7 +148,7 @@ class StosGlowny:
             return True
         return False
 
-
+# Klasa stosów końcowych (cele gry)
 class StosyKoncowe:
     def __init__(self):
         self.karo = []
@@ -145,6 +157,7 @@ class StosyKoncowe:
         self.trefl = []
 
     def czy_mozna_przeniesc_karte(self, nowaKarta):
+        # Sprawdza czy karta pasuje do stosu końcowego według koloru i wartości
         indeksWartosciKarty = wartosci.index(nowaKarta.wartosc)
         if (nowaKarta.kolor == "kier"):
             if (len(self.kier) == indeksWartosciKarty):
@@ -171,24 +184,19 @@ class StosyKoncowe:
             self.trefl.append(nowaKarta)
     
     def pokaz_stosy_koncowe(self):
+        # Wyświetla aktualne górne karty stosów końcowych
         print("\t\t\t", end="")
-        if (len(self.karo)):
-            self.karo[-1].pokaz_karte()
-        print("\t", end="")
-        if (len(self.kier)):
-            self.kier[-1].pokaz_karte()
-        print("\t", end="")
-        if (len(self.pik)):
-            self.pik[-1].pokaz_karte()
-        print("\t", end="")
-        if (len(self.trefl)):
-            self.trefl[-1].pokaz_karte()
-        print("\t", end="")
+        for stos in [self.karo, self.kier, self.pik, self.trefl]:
+            if stos:
+                stos[-1].pokaz_karte()
+            print("\t", end="")
+        # print()
 
     def czy_wygrana(self):
+        # Wygrana gdy każdy stos końcowy ma 13 kart
         return all(len(stos) == 13 for stos in [self.karo, self.kier, self.pik, self.trefl])
 
-
+# Funkcje pomocnicze do przenoszenia kart pomiędzy stosami
 def przeniesienie_karty_z_rezerwowego_do_glownego(kolumna):
     if (len(stosRezerwowy.karty) <= 0): return False
     pierwsza_karta = stosRezerwowy.zwroc_pierwsza_karte()
@@ -217,10 +225,12 @@ def przeniesienie_karty_z_glownego_do_koncowego(kolumna):
         return True
     return False 
 
+# Klasa odpowiadająca za obsługę gry — wyświetlanie, zapisywanie stanu, cofanie ruchów
 class ObslugaGry:
     def __init__(self):
-        self.historia = []
+        self.historia = [] # Lista przechowująca historię stanów gry (do cofania ruchów)
 
+    # Wyświetla tytuł gry w formie ASCII art
     def wyswietl_tytul(self):
         print(r"""
     ██████╗  █████╗ ███████╗    ██╗ █████╗ ███╗   ██╗███████╗
@@ -230,6 +240,7 @@ class ObslugaGry:
     ██║     ██║  ██║███████║██████║██║  ██║██║ ╚████║███████║
     ╚═╝     ╚═╝  ╚═╝╚══════╝╚═════╝╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝""")
 
+    # Wyświetla instrukcję sterowania grą
     def wyswietl_instrukcje(self):
         print(f"""
     I N S T R U K C J A   S T E R O W A N I A
@@ -253,6 +264,7 @@ class ObslugaGry:
         Ułóż wszystkie karty w 4 stosach końcowych od Asa do Króla w odpowiednich kolorach.
     """)
 
+    # Wyświetla aktualny stan gry: stos rezerwowy, końcowy i główny
     def wyswietl_stan_gry(self):
         self.wyswietl_przerwe()
         print("Stos rezerwowy (r)\tStosy końcowe (k)")
@@ -262,12 +274,14 @@ class ObslugaGry:
         print("Stos główny (g)")
         stosGlowny.pokaz_stos_glowny()
 
+    # Wyświetla linię oddzielającą dla czytelności
     def wyswietl_przerwe(self):
         print("\n====================================================|\n")
 
+    # Zapisuje obecny stan gry do historii (max. 3 poprzednie stany)
     def zapisz_stan(self):
         if len(self.historia) == 3:
-            self.historia.pop(0)  # usuwamy najstarszy stan
+            self.historia.pop(0)  # Usuwa najstarszy zapisany stan
         stan = (
             deepcopy(stosRezerwowy),
             deepcopy(stosGlowny),
@@ -275,6 +289,7 @@ class ObslugaGry:
         )
         self.historia.append(stan)
 
+    # Przywraca ostatni zapisany stan gry (cofnięcie ruchu)
     def cofnij_ruch(self):
         global stosRezerwowy, stosGlowny, stosyKoncowe
         if len(self.historia) == 0:
@@ -283,69 +298,117 @@ class ObslugaGry:
         ostatni_stan = self.historia.pop()
         stosRezerwowy, stosGlowny, stosyKoncowe = ostatni_stan
         return True
+    
+    # Wyświetla menu główne z decyzją użytkownika: nowa gra lub wyjście
+    def wyswietl_menu_glowne(self):
+        return input(f"""
+    - n    >> Nowa gra
+    - q    >> Zamknij grę
+    
+Decyzja: """).lower().strip()
 
 
+
+# Główna pętla gry
 if __name__ == "__main__":
 
-    talia = Talia()
-    stosRezerwowy = StosRezerwowy(talia.karty[0:24])
-    stosGlowny = StosGlowny(talia.karty[24:])
-    stosyKoncowe = StosyKoncowe()
-    obslugaGry = ObslugaGry()
-    obslugaGry.wyswietl_tytul()
-    obslugaGry.wyswietl_instrukcje()
-    obslugaGry.wyswietl_stan_gry()
-
-    aktualnaKarta = stosRezerwowy.zwroc_pierwsza_karte()
 
 
-    ruch = ""
-    wygrana = False
-    while (ruch != "q" and wygrana == False):
-        ruch = input("Ruch: ").strip().lower()
 
-        if (ruch == "p"):
-            obslugaGry.zapisz_stan()
-            stosRezerwowy.przewin()
-            obslugaGry.wyswietl_stan_gry()
-            wygrana = stosyKoncowe.czy_wygrana()
-        elif (ruch == "rk"):
-            obslugaGry.zapisz_stan()
-            przeniesienie_karty_z_rezerwowego_do_koncowego()
-            obslugaGry.wyswietl_stan_gry()
-            wygrana = stosyKoncowe.czy_wygrana()
-        elif (len(ruch) == 4 and ruch[0:2] == "rg" and "1" <= ruch[3] and ruch[3] <= "7"):
-            obslugaGry.zapisz_stan()
-            przeniesienie_karty_z_rezerwowego_do_glownego(ruch[3])
-            obslugaGry.wyswietl_stan_gry()
-            wygrana = stosyKoncowe.czy_wygrana()
-        elif (len(ruch) == 4 and ruch[0:2] == "gk" and "1" <= ruch[3] and ruch[3] <= "7"):
-            obslugaGry.zapisz_stan()
-            przeniesienie_karty_z_glownego_do_koncowego(ruch[3])
-            obslugaGry.wyswietl_stan_gry()
-            wygrana = stosyKoncowe.czy_wygrana()
-        #gg 6 7 2
-        elif (len(ruch) >= 8 and ruch.startswith("gg") and ruch[3] in "1234567" and ruch[5] in "1234567"):
-            try:
-                ilosc = int(ruch[7:])  # od znaku 7 do końca
-                if 1 <= ilosc <= 13:
-                    obslugaGry.zapisz_stan()
-                    stosGlowny.przeniesienie_kart_z_glownego_do_glownego(ruch[3], ruch[5], ilosc)
-                    obslugaGry.wyswietl_stan_gry()
-                    wygrana = stosyKoncowe.czy_wygrana()
-            except ValueError:
-                print("Nieprawidłowa liczba kart.")
-        elif ruch == "c":
-            if (obslugaGry.cofnij_ruch()):
+    ruch = ""           # Ostatni wykonany ruch gracza
+    gra = True          # Zmienna decydująca, czy gra trwa
+    wygrana = False     # Zmienna wygranej
+    decyzjaOGrze = ""   # Zmienna przechowująca decyzję użytkownika po zakończeniu rozgrywki
+    while (gra):
+        # Inicjalizacja nowej talii i rozłożenie kart
+        talia = Talia()
+        stosRezerwowy = StosRezerwowy(talia.karty[0:24])
+        stosGlowny = StosGlowny(talia.karty[24:])
+        stosyKoncowe = StosyKoncowe()
+        obslugaGry = ObslugaGry()
+
+        # Wyświetlenie tytułu i instrukcji na początku gry
+        obslugaGry.wyswietl_tytul()
+        obslugaGry.wyswietl_instrukcje()
+        obslugaGry.wyswietl_stan_gry()
+
+        # Pętla wykonująca się do zakończenia gry lub wygranej
+        while (ruch != "q" and wygrana == False):
+            ruch = input("Ruch: ").strip().lower()
+
+            # Obsługa komendy 'p' – przewinięcie stosu rezerwowego
+            if (ruch == "p"):
+                obslugaGry.zapisz_stan()
+                stosRezerwowy.przewin()
                 obslugaGry.wyswietl_stan_gry()
-        elif (ruch == "h"):
-            obslugaGry.wyswietl_przerwe()
-            obslugaGry.wyswietl_instrukcje()
-        elif (ruch == "q"):
-            print("\nDOBRZE CI POSZŁO. SPRÓBUJ JESZCZE RAZ!")
-        else:
-            print("""Błędny ruch. Wybierz "h", aby wyświetlić instrukcję,""")
+                wygrana = stosyKoncowe.czy_wygrana()
+            
+            # Obsługa komendy 'rk' – przeniesienie karty do stosu końcowego
+            elif (ruch == "rk"):
+                obslugaGry.zapisz_stan()
+                przeniesienie_karty_z_rezerwowego_do_koncowego()
+                obslugaGry.wyswietl_stan_gry()
+                wygrana = stosyKoncowe.czy_wygrana()
+
+             # Obsługa komendy 'rg X' – z rezerwowego do głównego stosu X
+            elif (len(ruch) == 4 and ruch[0:2] == "rg" and "1" <= ruch[3] and ruch[3] <= "7"):
+                obslugaGry.zapisz_stan()
+                przeniesienie_karty_z_rezerwowego_do_glownego(ruch[3])
+                obslugaGry.wyswietl_stan_gry()
+                wygrana = stosyKoncowe.czy_wygrana()
+
+            # Obsługa komendy 'gk X' – z głównego X do końcowego
+            elif (len(ruch) == 4 and ruch[0:2] == "gk" and "1" <= ruch[3] and ruch[3] <= "7"):
+                obslugaGry.zapisz_stan()
+                przeniesienie_karty_z_glownego_do_koncowego(ruch[3])
+                obslugaGry.wyswietl_stan_gry()
+                wygrana = stosyKoncowe.czy_wygrana()
+            
+            # Obsługa komendy 'gg X Y Z' – przeniesienie Z kart między kolumnami głównymi
+            elif (len(ruch) >= 8 and ruch.startswith("gg") and ruch[3] in "1234567" and ruch[5] in "1234567"):
+                try:
+                    ilosc = int(ruch[7:])  # Liczba kart do przeniesienia
+                    if 1 <= ilosc <= 13:
+                        obslugaGry.zapisz_stan()
+                        stosGlowny.przeniesienie_kart_z_glownego_do_glownego(ruch[3], ruch[5], ilosc)
+                        obslugaGry.wyswietl_stan_gry()
+                        wygrana = stosyKoncowe.czy_wygrana()
+                except ValueError:
+                    print("Nieprawidłowa liczba kart.")
+
+            # Cofnięcie ruchu
+            elif ruch == "c":
+                if (obslugaGry.cofnij_ruch()):
+                    obslugaGry.wyswietl_stan_gry()
+
+            # Wyświetlenie instrukcji
+            elif (ruch == "h"):
+                obslugaGry.wyswietl_przerwe()
+                obslugaGry.wyswietl_instrukcje()
+
+            # Zakończenie gry
+            elif (ruch == "q"):
+                print("\nDOBRZE CI POSZŁO. SPRÓBUJ JESZCZE RAZ!")
+            
+            # Obsługa nieprawidłowego polecenia
+            else:
+                print("""Błędny ruch. Wybierz "h", aby wyświetlić instrukcję,""")
 
 
-    if (wygrana):
-        print("GRATULACJE WYGRAŁEŚ!!!")
+        # Komunikat po wygraniu gry
+        if (wygrana):
+            print("\tGRATULACJE WYGRAŁEŚ!!!")
+
+        # Reset zmiennych stanu
+        ruch = ""
+        wygrana = False
+
+        # Zapytanie użytkownika, czy chce rozpocząć nową grę, czy zamknąć grę
+        while (decyzjaOGrze != "q" and decyzjaOGrze != "n"):
+            decyzjaOGrze = obslugaGry.wyswietl_menu_glowne()
+            
+            if (decyzjaOGrze == "q"):
+                gra = False
+        
+        decyzjaOGrze = ""
+                
