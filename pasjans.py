@@ -312,13 +312,11 @@ Decyzja: """).lower().strip()
 # Główna pętla gry
 if __name__ == "__main__":
 
-
-
-
     ruch = ""           # Ostatni wykonany ruch gracza
     gra = True          # Zmienna decydująca, czy gra trwa
     wygrana = False     # Zmienna wygranej
     decyzjaOGrze = ""   # Zmienna przechowująca decyzję użytkownika po zakończeniu rozgrywki
+    
     while (gra):
         # Inicjalizacja nowej talii i rozłożenie kart
         talia = Talia()
