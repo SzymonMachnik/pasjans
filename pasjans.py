@@ -1,3 +1,4 @@
+# Zaimportowanie niezbędnych bibliotek
 from colorama import init, Fore
 init(autoreset=True)  # automatyczne resetowanie kolorów po każdej linii
 
@@ -5,9 +6,11 @@ from copy import deepcopy # do zapisywania stanu gry
 
 import random # do tasowania kart
 
+
 # Definicje kolorów i wartości kart
 kolory = ["kier", "karo", "pik", "trefl"]
 wartosci = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
+
 
 # Klasa reprezentująca pojedynczą kartę
 class Karta:
@@ -34,13 +37,15 @@ class Karta:
     def czy_czerwona_karta(self):
         # Sprawdzenie czy karta ma czerwony kolor
         return self.kolor in ["kier", "karo"]
-        
+
+
 # Klasa reprezentująca talię kart
 class Talia:
     def __init__(self):
         # Tworzenie talii kart i tasowanie
         self.karty = [Karta(kolor, wartosc) for kolor in kolory for wartosc in wartosci]
         random.shuffle(self.karty)
+
 
 # Klasa stosu rezerwowego (24 karty)
 class StosRezerwowy:  
@@ -68,6 +73,7 @@ class StosRezerwowy:
 
     def usun_karte(self):
         self.karty.pop(self.indeks)
+
 
 # Klasa stosu głównego - 7 kolumn kart
 class StosGlowny:
@@ -148,6 +154,7 @@ class StosGlowny:
             return True
         return False
 
+
 # Klasa stosów końcowych (cele gry)
 class StosyKoncowe:
     def __init__(self):
@@ -196,6 +203,7 @@ class StosyKoncowe:
         # Wygrana gdy każdy stos końcowy ma 13 kart
         return all(len(stos) == 13 for stos in [self.karo, self.kier, self.pik, self.trefl])
 
+
 # Funkcje pomocnicze do przenoszenia kart pomiędzy stosami
 def przeniesienie_karty_z_rezerwowego_do_glownego(kolumna):
     if (len(stosRezerwowy.karty) <= 0): return False
@@ -224,6 +232,7 @@ def przeniesienie_karty_z_glownego_do_koncowego(kolumna):
         stosyKoncowe.dodaj_karte(nowa_karta)
         return True
     return False 
+
 
 # Klasa odpowiadająca za obsługę gry — wyświetlanie, zapisywanie stanu, cofanie ruchów
 class ObslugaGry:
