@@ -49,30 +49,53 @@ class Talia:
 
 # Klasa stosu rezerwowego (24 karty)
 class StosRezerwowy:  
-    def __init__(self, karty):
+    def __init__(self, karty, trudny):
         self.karty = karty
+        self.trudny = trudny
         self.indeks = 0 # Indeks aktualnie wyświetlanej karty
+        if (self.trudny):
+            self.indeks = 2
 
         # Odkrywamy wszystkie karty w stosie rezerwowym
         for karta in karty:
             karta.odwrocona = True
 
     def pokaz_stos_rezerwowy(self):
-        # Pokazuje aktualną kartę, resetuje indeks jeśli przekroczony
-        if (self.indeks >= len(self.karty)):
-            self.indeks = 0
-            random.shuffle(self.karty)
-        if (len(self.karty) > 0):
-            self.karty[self.indeks].pokaz_karte()        
+        # Pokazuje aktualną kartę/y, resetuje indeks jeśli przekroczony
+        if (self.trudny == False):
+            if (self.indeks >= len(self.karty)):
+                self.indeks = 0
+            if (len(self.karty) > 0):
+                self.karty[self.indeks].pokaz_karte()
+            # Dodatkowy odstęp przed stosem końcowym
+            print("\t\t\t", end="")
+        else:
+            print(self.indeks, len(self.karty) - 1)
+            for i in range(3):
+                if (self.indeks - 2 + i < len(self.karty) and self.indeks - 2 + i >= 0): 
+                    self.karty[self.indeks - 2 + i].pokaz_karte()   
+                    print(" ", end="")  
+            # Dodatkowy odstęp przed stosem końcowym
+            if (len(self.karty) <= 1): print("\t", end="")
+            print("\t\t", end="")
 
     def zwroc_pierwsza_karte(self):
         return self.karty[self.indeks]
     
     def przewin(self):
-        self.indeks += 1
+        if (self.trudny == False):
+            self.indeks += 1
+        else:
+            self.indeks += 3
+            if (self.indeks - len(self.karty) >= 2):
+                self.indeks = 2
+            while(self.indeks >= len(self.karty) and len(self.karty) > 0):
+                self.indeks -= 1   
 
     def usun_karte(self):
         self.karty.pop(self.indeks)
+        if (self.trudny == True):
+            self.indeks = max(0, self.indeks - 1)
 
 
 # Klasa stosu głównego - 7 kolumn kart
@@ -192,7 +215,7 @@ class StosyKoncowe:
     
     def pokaz_stosy_koncowe(self):
         # Wyświetla aktualne górne karty stosów końcowych
-        print("\t\t\t", end="")
+        # print("\t\t\t", end="")
         for stos in [self.karo, self.kier, self.pik, self.trefl]:
             if stos:
                 stos[-1].pokaz_karte()
@@ -315,28 +338,46 @@ class ObslugaGry:
     - q    >> Zamknij grę
     
 Decyzja: """).lower().strip()
+    
+    # Zapytaj gracza o poziom trudności
+    def wyswietl_poziom_trudnosci(self):
+        return input(f"""
+    Poziom trudności:
+                                          
+        - 1    >> Łatwy
+        - 2    >> Trudny
+    
+Poziom: """).strip()
 
 
 
 # Główna pętla gry
 if __name__ == "__main__":
 
-    ruch = ""           # Ostatni wykonany ruch gracza
     gra = True          # Zmienna decydująca, czy gra trwa
     wygrana = False     # Zmienna wygranej
-    decyzjaOGrze = ""   # Zmienna przechowująca decyzję użytkownika po zakończeniu rozgrywki
     
     while (gra):
-        # Inicjalizacja nowej talii i rozłożenie kart
-        talia = Talia()
-        stosRezerwowy = StosRezerwowy(talia.karty[0:24])
-        stosGlowny = StosGlowny(talia.karty[24:])
-        stosyKoncowe = StosyKoncowe()
-        obslugaGry = ObslugaGry()
+        
+        poziomTrudnosci = ""    # Zmienna określająca poziom trudności
+        decyzjaOGrze = ""       # Zmienna przechowująca decyzję użytkownika po zakończeniu rozgrywki
+        ruch = ""               # Ostatni wykonany ruch gracza
 
-        # Wyświetlenie tytułu i instrukcji na początku gry
+        # Wyświetlenie tytułu, instrukcji oraz wybranie poziomu gry
+        obslugaGry = ObslugaGry()
         obslugaGry.wyswietl_tytul()
         obslugaGry.wyswietl_instrukcje()
+
+        while (poziomTrudnosci != "1" and poziomTrudnosci != "2"):
+            poziomTrudnosci = obslugaGry.wyswietl_poziom_trudnosci()
+
+        # Inicjalizacja nowej talii i rozłożenie kart
+        talia = Talia()
+        stosRezerwowy = StosRezerwowy(talia.karty[0:24], poziomTrudnosci == "2")
+        stosGlowny = StosGlowny(talia.karty[24:])
+        stosyKoncowe = StosyKoncowe()
+        
+        # Wyświetlenie początkowego stanu gry
         obslugaGry.wyswietl_stan_gry()
 
         # Pętla wykonująca się do zakończenia gry lub wygranej
@@ -404,7 +445,7 @@ if __name__ == "__main__":
 
         # Komunikat po wygraniu gry
         if (wygrana):
-            print("\tGRATULACJE WYGRAŁEŚ!!!")
+            print("\nGRATULACJE WYGRAŁEŚ!!!")
 
         # Reset zmiennych stanu
         ruch = ""
@@ -417,5 +458,4 @@ if __name__ == "__main__":
             if (decyzjaOGrze == "q"):
                 gra = False
         
-        decyzjaOGrze = ""
                 
