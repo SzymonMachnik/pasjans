@@ -57,9 +57,9 @@ class StosRezerwowy:
             self.indeks = 2
         self.trudnyIndeksPomocniczy = 0
 
-        #self.karty[0] = Karta("kier", "A")
-        #self.karty[1] = Karta("karo", "A")
-        #self.karty[2] = Karta("trefl", "A")
+        # self.karty[0] = Karta("kier", "A")
+        # self.karty[1] = Karta("karo", "A")
+        # self.karty[2] = Karta("trefl", "A")
 
         # Odkrywamy wszystkie karty w stosie rezerwowym
         for karta in karty:
@@ -75,7 +75,7 @@ class StosRezerwowy:
             # Dodatkowy odstęp przed stosem końcowym
             print("\t\t\t", end="")
         else:
-            # print(f"P: {self.trudnyIndeksPomocniczy} I: {self.indeks} LEN: {len(self.karty)}")
+            print(f"P: {self.trudnyIndeksPomocniczy} I: {self.indeks} LEN: {len(self.karty)}")
             self.trudnyIndeksPomocniczy = min(self.trudnyIndeksPomocniczy, self.indeks)
             for i in range(self.trudnyIndeksPomocniczy, self.indeks + 1):
                 self.karty[i].pokaz_karte()
@@ -108,8 +108,12 @@ class StosRezerwowy:
         if (self.trudny == True):
             if (self.indeks - 1 < 0):
                 self.indeks = 2
+                self.trudnyIndeksPomocniczy = 0
             else:
                 self.indeks -= 1
+            
+            if (self.trudnyIndeksPomocniczy > self.indeks):
+                self.indeks += 3
 
 
 # Klasa stosu głównego - 7 kolumn kart
