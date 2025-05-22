@@ -55,6 +55,11 @@ class StosRezerwowy:
         self.indeks = 0 # Indeks aktualnie wyświetlanej karty
         if (self.trudny):
             self.indeks = 2
+        self.trudnyIndeksPomocniczy = 0
+
+        #self.karty[0] = Karta("kier", "A")
+        #self.karty[1] = Karta("karo", "A")
+        #self.karty[2] = Karta("trefl", "A")
 
         # Odkrywamy wszystkie karty w stosie rezerwowym
         for karta in karty:
@@ -70,11 +75,15 @@ class StosRezerwowy:
             # Dodatkowy odstęp przed stosem końcowym
             print("\t\t\t", end="")
         else:
-            print(self.indeks, len(self.karty) - 1)
-            for i in range(3):
-                if (self.indeks - 2 + i < len(self.karty) and self.indeks - 2 + i >= 0): 
-                    self.karty[self.indeks - 2 + i].pokaz_karte()   
-                    print(" ", end="")  
+            # print(f"P: {self.trudnyIndeksPomocniczy} I: {self.indeks} LEN: {len(self.karty)}")
+            self.trudnyIndeksPomocniczy = min(self.trudnyIndeksPomocniczy, self.indeks)
+            for i in range(self.trudnyIndeksPomocniczy, self.indeks + 1):
+                self.karty[i].pokaz_karte()
+                print(" ", end="") 
+            #for i in range(3):
+            #   if (self.indeks - 2 + i < len(self.karty) and self.indeks - 2 + i >= 0): 
+            #       self.karty[self.indeks - 2 + i].pokaz_karte()   
+            #       print(" ", end="")  
             # Dodatkowy odstęp przed stosem końcowym
             if (len(self.karty) <= 1): print("\t", end="")
             print("\t\t", end="")
@@ -86,16 +95,21 @@ class StosRezerwowy:
         if (self.trudny == False):
             self.indeks += 1
         else:
+            self.trudnyIndeksPomocniczy = self.indeks + 1
             self.indeks += 3
             if (self.indeks - len(self.karty) >= 2):
                 self.indeks = 2
             while(self.indeks >= len(self.karty) and len(self.karty) > 0):
-                self.indeks -= 1   
+                self.indeks -= 1
+            if (self.trudnyIndeksPomocniczy > self.indeks): self.trudnyIndeksPomocniczy = 0
 
     def usun_karte(self):
         self.karty.pop(self.indeks)
         if (self.trudny == True):
-            self.indeks = max(0, self.indeks - 1)
+            if (self.indeks - 1 < 0):
+                self.indeks = 2
+            else:
+                self.indeks -= 1
 
 
 # Klasa stosu głównego - 7 kolumn kart
