@@ -23,9 +23,14 @@ class Karta:
                       "karo" : "♦",
                       "pik" : "♠",
                       "trefl" : "♣"}
+        
+    # Sprawdzenie czy karta ma czerwony kolor
+    def czy_czerwona_karta(self):
+        return self.kolor in ["kier", "karo"]
+    
 
+    # Wyświetlenie karty: zakrytej lub odkrytej z kolorem
     def pokaz_karte(self):
-        # Wyświetlenie karty: zakrytej lub odkrytej z kolorem
         if (self.odwrocona == False):
             print("XXX", end="")
             return
@@ -33,10 +38,6 @@ class Karta:
             print(Fore.RED + f"{self.ikony[self.kolor]} {self.wartosc}", end="")
         else:
             print(Fore.WHITE + f"{self.ikony[self.kolor]} {self.wartosc}", end="")
-        
-    def czy_czerwona_karta(self):
-        # Sprawdzenie czy karta ma czerwony kolor
-        return self.kolor in ["kier", "karo"]
 
 
 # Klasa reprezentująca talię kart
@@ -57,16 +58,44 @@ class StosRezerwowy:
             self.indeks = 2
         self.trudnyIndeksPomocniczy = 0
 
-        # self.karty[0] = Karta("kier", "A")
-        # self.karty[1] = Karta("karo", "A")
-        # self.karty[2] = Karta("trefl", "A")
-
         # Odkrywamy wszystkie karty w stosie rezerwowym
         for karta in karty:
             karta.odwrocona = True
+    
+    # Przewiń karty na stosie
+    def przewin(self):
+        if (self.trudny == False):
+            self.indeks += 1
+        else:
+            self.trudnyIndeksPomocniczy = self.indeks + 1
+            self.indeks += 3
+            if (self.indeks - len(self.karty) >= 2):
+                self.indeks = 2
+            while(self.indeks >= len(self.karty) and len(self.karty) > 0):
+                self.indeks -= 1
+            if (self.trudnyIndeksPomocniczy > self.indeks): self.trudnyIndeksPomocniczy = 0
 
+    # Usuń kartę ze stosu
+    def usun_karte(self):
+        self.karty.pop(self.indeks)
+        if (self.trudny == False):
+            self.indeks = max(self.indeks - 1, 0)
+        if (self.trudny == True):
+            if (self.indeks - 1 < 0):
+                self.indeks = 2
+                self.trudnyIndeksPomocniczy = 0
+            else:
+                self.indeks -= 1
+            
+            if (self.trudnyIndeksPomocniczy > self.indeks):
+                self.indeks += 3
+
+    # Zwróć pierwszą kartę ze stosu
+    def zwroc_pierwsza_karte(self):
+        return self.karty[self.indeks]
+
+    # Pokazuje aktualną kartę/y, resetuje indeks jeśli przekroczony
     def pokaz_stos_rezerwowy(self):
-        # Pokazuje aktualną kartę/y, resetuje indeks jeśli przekroczony
         if (self.trudny == False):
             if (self.indeks >= len(self.karty)):
                 self.indeks = 0
@@ -80,40 +109,10 @@ class StosRezerwowy:
             for i in range(self.trudnyIndeksPomocniczy, self.indeks + 1):
                 self.karty[i].pokaz_karte()
                 print(" ", end="") 
-            #for i in range(3):
-            #   if (self.indeks - 2 + i < len(self.karty) and self.indeks - 2 + i >= 0): 
-            #       self.karty[self.indeks - 2 + i].pokaz_karte()   
-            #       print(" ", end="")  
+            
             # Dodatkowy odstęp przed stosem końcowym
             if (len(self.karty) <= 1): print("\t", end="")
             print("\t\t", end="")
-
-    def zwroc_pierwsza_karte(self):
-        return self.karty[self.indeks]
-    
-    def przewin(self):
-        if (self.trudny == False):
-            self.indeks += 1
-        else:
-            self.trudnyIndeksPomocniczy = self.indeks + 1
-            self.indeks += 3
-            if (self.indeks - len(self.karty) >= 2):
-                self.indeks = 2
-            while(self.indeks >= len(self.karty) and len(self.karty) > 0):
-                self.indeks -= 1
-            if (self.trudnyIndeksPomocniczy > self.indeks): self.trudnyIndeksPomocniczy = 0
-
-    def usun_karte(self):
-        self.karty.pop(self.indeks)
-        if (self.trudny == True):
-            if (self.indeks - 1 < 0):
-                self.indeks = 2
-                self.trudnyIndeksPomocniczy = 0
-            else:
-                self.indeks -= 1
-            
-            if (self.trudnyIndeksPomocniczy > self.indeks):
-                self.indeks += 3
 
 
 # Klasa stosu głównego - 7 kolumn kart
@@ -131,23 +130,18 @@ class StosGlowny:
         # Odkrywamy ostatnią kartę w każdej kolumnie
         for kolumna in range(1, 8):
             self.kolumny[str(kolumna)][-1].odwrocona = True
+
+    # Dodaj kartę do podanej kolumny
+    def dodaj_karte(self, karta, kolumna):
+        self.kolumny[kolumna].append(karta)
     
-    def pokaz_stos_glowny(self):
-        # Wyświetla wszystkie kolumny
-        maksymalna_liczba_kart_w_kolumnie = 0
-        for kolumna in range(1, 8):
-            if (len(self.kolumny[str(kolumna)]) > maksymalna_liczba_kart_w_kolumnie):
-                maksymalna_liczba_kart_w_kolumnie = len(self.kolumny[str(kolumna)])
+    # Odkrywa ostatnią kartę
+    def odkryjOstatniaKarte(self, kolumna):
+        if (len(self.kolumny[kolumna]) > 0):
+            self.kolumny[kolumna][-1].odwrocona = True
 
-        for rzad in range(0, maksymalna_liczba_kart_w_kolumnie):
-            for kolumna in range(1, 8):
-                if (len(self.kolumny[str(kolumna)]) > rzad):
-                    self.kolumny[str(kolumna)][rzad].pokaz_karte()
-                print("\t", end="")
-            print("")
-
+    # Sprawdza, czy karta może być dodana na szczyt wybranej kolumny
     def czy_mozna_przeniesc_karte_do_kolumny(self, nowaKarta, kolumna):
-        # Sprawdza, czy karta może być dodana na szczyt wybranej kolumny
         if (len(self.kolumny[kolumna]) == 0):
             if (nowaKarta.wartosc == "K"): return True
             else: return False
@@ -162,30 +156,21 @@ class StosGlowny:
         if (nowaKarta.wartosc == wartosci[indeksWartosciKartyNaStosieGlownym - 1]): return True
 
         return False
-
-    def dodaj_karte(self, karta, kolumna):
-        self.kolumny[kolumna].append(karta)
-
-    def usun_karte(self, kolumna):
-        self.kolumny[kolumna].pop()
-        self.odkryjOstatniaKarte(kolumna)
-
+    
+    # Sprawdza, czy można zabrać kartę z kolumny (czy jest ona odkryta)
     def czy_mozna_zabrac(self, kolumnaBierz, iloscKart):
-        # Sprawdza, czy można zabrać kartę z kolumny (czy jest ona odkryta)
         if (iloscKart > len(self.kolumny[kolumnaBierz]) or iloscKart <= 0): return False
         if (self.kolumny[kolumnaBierz][-iloscKart].odwrocona == False): return False
         return True
 
+    # Sprawdza, czy można przenieść kartę/y pomiędzy kolumnami stosu głównego
     def czy_mozna_przeniesc_karty_z_glownego_do_glownego(self, kolumnaBierz, kolumnaDodaj, iloscKart):
         if (self.czy_mozna_zabrac(kolumnaBierz, iloscKart) == False): return False
         ostatniaKartaDoBrania = self.kolumny[kolumnaBierz][-iloscKart]
 
         return self.czy_mozna_przeniesc_karte_do_kolumny(ostatniaKartaDoBrania, kolumnaDodaj)
 
-    def odkryjOstatniaKarte(self, kolumna):
-        if (len(self.kolumny[kolumna]) > 0):
-            self.kolumny[kolumna][-1].odwrocona = True
-
+    # Przenosi kartę/y pomiędzy kolumnami stosu głównego
     def przeniesienie_kart_z_glownego_do_glownego(self, kolumnaBierz, kolumnaDodaj, iloscKart):
         if (self.czy_mozna_przeniesc_karty_z_glownego_do_glownego(kolumnaBierz, kolumnaDodaj, iloscKart)):
             kartyDoPrzeniesienia = self.kolumny[kolumnaBierz][-iloscKart:]
@@ -195,8 +180,27 @@ class StosGlowny:
             return True
         return False
 
+    # Usuń kartę z podanej kolumny
+    def usun_karte(self, kolumna):
+        self.kolumny[kolumna].pop()
+        self.odkryjOstatniaKarte(kolumna)
+    
+    # Wyświetla wszystkie kolumny
+    def pokaz_stos_glowny(self):
+        maksymalna_liczba_kart_w_kolumnie = 0
+        for kolumna in range(1, 8):
+            if (len(self.kolumny[str(kolumna)]) > maksymalna_liczba_kart_w_kolumnie):
+                maksymalna_liczba_kart_w_kolumnie = len(self.kolumny[str(kolumna)])
 
-# Klasa stosów końcowych (cele gry)
+        for rzad in range(0, maksymalna_liczba_kart_w_kolumnie):
+            for kolumna in range(1, 8):
+                if (len(self.kolumny[str(kolumna)]) > rzad):
+                    self.kolumny[str(kolumna)][rzad].pokaz_karte()
+                print("\t", end="")
+            print("")
+
+
+# Klasa stosów końcowych
 class StosyKoncowe:
     def __init__(self):
         self.karo = []
@@ -204,8 +208,19 @@ class StosyKoncowe:
         self.pik = []
         self.trefl = []
 
+    # Dodaj kartę do stosu końcowego
+    def dodaj_karte(self, nowaKarta):
+        if (nowaKarta.kolor == "kier"):
+            self.kier.append(nowaKarta)
+        elif (nowaKarta.kolor == "karo"):
+            self.karo.append(nowaKarta)
+        elif (nowaKarta.kolor == "pik"):
+            self.pik.append(nowaKarta)
+        else:
+            self.trefl.append(nowaKarta)
+
+    # Sprawdza, czy karta pasuje do stosu końcowego według koloru i wartości
     def czy_mozna_przeniesc_karte(self, nowaKarta):
-        # Sprawdza czy karta pasuje do stosu końcowego według koloru i wartości
         indeksWartosciKarty = wartosci.index(nowaKarta.wartosc)
         if (nowaKarta.kolor == "kier"):
             if (len(self.kier) == indeksWartosciKarty):
@@ -221,31 +236,52 @@ class StosyKoncowe:
                 return True
         return False
     
-    def dodaj_karte(self, nowaKarta):
-        if (nowaKarta.kolor == "kier"):
-            self.kier.append(nowaKarta)
-        elif (nowaKarta.kolor == "karo"):
-            self.karo.append(nowaKarta)
-        elif (nowaKarta.kolor == "pik"):
-            self.pik.append(nowaKarta)
-        else:
-            self.trefl.append(nowaKarta)
+    # Wygrana gdy każdy stos końcowy ma 13 kart
+    def czy_wygrana(self):
+        return all(len(stos) == 13 for stos in [self.karo, self.kier, self.pik, self.trefl])
     
-    def pokaz_stosy_koncowe(self):
-        # Wyświetla aktualne górne karty stosów końcowych
-        # print("\t\t\t", end="")
+    # Wyświetla aktualne górne karty stosów końcowych
+    def pokaz_stosy_koncowe(self):    
         for stos in [self.karo, self.kier, self.pik, self.trefl]:
             if stos:
                 stos[-1].pokaz_karte()
             print("\t", end="")
-        # print()
 
-    def czy_wygrana(self):
-        # Wygrana gdy każdy stos końcowy ma 13 kart
-        return all(len(stos) == 13 for stos in [self.karo, self.kier, self.pik, self.trefl])
+# Klasa reprezentująca gracza
+class Gracz:
+    def __init__(self):
+        self.wynikiGier = []    # Lista do przechowywania wszystkich wyników
+        self.liczbaRuchow = 0   # Zmienna do liczenia ruchów
+
+    # Zwiększ liczbę wykonanych ruchów przez gracza
+    def zwieksz_liczbe_ruchow(self):
+        self.liczbaRuchow += 1
+
+    # Zmniejsz liczbę wykonanych ruchów przez gracza
+    def zmniejsz_liczbe_ruchow(self):
+        self.liczbaRuchow -= 1
+
+    # Zapisz liczbę wykonanych ruchów przez gracza do listy
+    def zapisz_iczbe_ruchow(self):
+        self.wynikiGier.append(self.liczbaRuchow)
+        self.wynikiGier.sort()  # Posortuj listę rosnąco
+    
+    # Zresetuj liczbę wykonanych ruchów przez gracza
+    def zresetuj_liczbe_ruchow(self):
+        self.liczbaRuchow = 0
+
+    # Zwróć liczbę wykonanych ruchów przez gracza
+    def zwroc_liczbe_ruchow(self):
+        return self.liczbaRuchow
+
+    # Wyświetl ranking wyników (liczb ruchów) wykonanych przez gracza
+    def wyswietl_ranking_wynikow(self):
+        for i in range(0, len(self.wynikiGier)):
+            print(f"\t\t{i + 1}. {self.wynikiGier[i]}")
 
 
 # Funkcje pomocnicze do przenoszenia kart pomiędzy stosami
+# Przeniesienia karty z stosu rezerwowego do głównego
 def przeniesienie_karty_z_rezerwowego_do_glownego(kolumna):
     if (len(stosRezerwowy.karty) <= 0): return False
     pierwsza_karta = stosRezerwowy.zwroc_pierwsza_karte()
@@ -256,6 +292,7 @@ def przeniesienie_karty_z_rezerwowego_do_glownego(kolumna):
         return True
     return False
 
+# Przeniesienia karty z stosu rezerwowego do końcowego
 def przeniesienie_karty_z_rezerwowego_do_koncowego():
     if (len(stosRezerwowy.karty) <= 0): return False
     pierwsza_karta = stosRezerwowy.zwroc_pierwsza_karte()
@@ -265,6 +302,7 @@ def przeniesienie_karty_z_rezerwowego_do_koncowego():
         return True
     return False 
 
+# Przeniesienia karty z stosu głównego do końcowego
 def przeniesienie_karty_z_glownego_do_koncowego(kolumna):
     if (len(stosGlowny.kolumny[kolumna]) <= 0): return False
     nowa_karta = stosGlowny.kolumny[kolumna][-1]
@@ -296,19 +334,19 @@ class ObslugaGry:
     I N S T R U K C J A   S T E R O W A N I A
 
     Ruchy ogólne:
-        - p       >> Przewiń kartę w stosie rezerwowym
-        - q       >> Zakończ grę
-        - h       >> Wyświetl pomoc (tę instrukcję)
+        p       >> Przewiń kartę w stosie rezerwowym
+        q       >> Zakończ grę
+        h       >> Wyświetl pomoc (tę instrukcję)
 
     Ruchy ze stosu rezerwowego:
-        - rk      >> Przenieś kartę do stosu końcowego
-        - rg X    >> Przenieś kartę do kolumny głównej X (1–7)
+        rk      >> Przenieś kartę do stosu końcowego
+        rg X    >> Przenieś kartę do kolumny głównej X (1–7)
 
     Ruchy z kolumny głównej:
-        - gk X    >> Przenieś kartę z kolumny głównej X do stosu końcowego
+        gk X    >> Przenieś kartę z kolumny głównej X do stosu końcowego
 
     Przenoszenie między kolumnami głównymi:
-        - gg X Y Z  >> Przenieś Z kart z kolumny głównej X do Y
+        gg X Y Z  >> Przenieś Z kart z kolumny głównej X do Y
 
     Cel gry:
         Ułóż wszystkie karty w 4 stosach końcowych od Asa do Króla w odpowiednich kolorach.
@@ -352,20 +390,32 @@ class ObslugaGry:
     # Wyświetla menu główne z decyzją użytkownika: nowa gra lub wyjście
     def wyswietl_menu_glowne(self):
         return input(f"""
-    - n    >> Nowa gra
-    - q    >> Zamknij grę
+    n    >> Nowa gra
+    q    >> Zamknij grę
     
 Decyzja: """).lower().strip()
     
     # Zapytaj gracza o poziom trudności
     def wyswietl_poziom_trudnosci(self):
         return input(f"""
+    N O W A   G R A
+
     Poziom trudności:
                                           
-        - 1    >> Łatwy
-        - 2    >> Trudny
+        1    >> Łatwy
+        2    >> Trudny
     
 Poziom: """).strip()
+    
+    # Wyświetla końcowe menu wraz z rankigiem
+    def wyswietl_koncowe_menu(self, gracz):
+        print(f"""
+    GRATULACJE WYGRAŁEŚ!!!
+    
+    Liczba ruchów: {gracz.zwroc_liczbe_ruchow()}
+
+    Ranking:""")
+        gracz.wyswietl_ranking_wynikow()
 
 
 
@@ -374,17 +424,20 @@ if __name__ == "__main__":
 
     gra = True          # Zmienna decydująca, czy gra trwa
     wygrana = False     # Zmienna wygranej
+
+    # Inicjalizacja obiektów do obsługi gry oraz gracza
+    obslugaGry = ObslugaGry()
+    gracz = Gracz()
     
+    # Wyświetlenie tytułu, instrukcji oraz wybranie poziomu gry
+    obslugaGry.wyswietl_tytul()
+    obslugaGry.wyswietl_instrukcje()
+
     while (gra):
         
         poziomTrudnosci = ""    # Zmienna określająca poziom trudności
         decyzjaOGrze = ""       # Zmienna przechowująca decyzję użytkownika po zakończeniu rozgrywki
         ruch = ""               # Ostatni wykonany ruch gracza
-
-        # Wyświetlenie tytułu, instrukcji oraz wybranie poziomu gry
-        obslugaGry = ObslugaGry()
-        obslugaGry.wyswietl_tytul()
-        obslugaGry.wyswietl_instrukcje()
 
         while (poziomTrudnosci != "1" and poziomTrudnosci != "2"):
             poziomTrudnosci = obslugaGry.wyswietl_poziom_trudnosci()
@@ -394,6 +447,8 @@ if __name__ == "__main__":
         stosRezerwowy = StosRezerwowy(talia.karty[0:24], poziomTrudnosci == "2")
         stosGlowny = StosGlowny(talia.karty[24:])
         stosyKoncowe = StosyKoncowe()
+
+        gracz.zresetuj_liczbe_ruchow()
         
         # Wyświetlenie początkowego stanu gry
         obslugaGry.wyswietl_stan_gry()
@@ -401,6 +456,7 @@ if __name__ == "__main__":
         # Pętla wykonująca się do zakończenia gry lub wygranej
         while (ruch != "q" and wygrana == False):
             ruch = input("Ruch: ").strip().lower()
+            gracz.zwieksz_liczbe_ruchow()
 
             # Obsługa komendy 'p' – przewinięcie stosu rezerwowego
             if (ruch == "p"):
@@ -459,11 +515,13 @@ if __name__ == "__main__":
             # Obsługa nieprawidłowego polecenia
             else:
                 print("""Błędny ruch. Wybierz "h", aby wyświetlić instrukcję,""")
+                gracz.zmniejsz_liczbe_ruchow() # Jeśli ruch okazał się być nieważnym - zmniejsz liczbę ruchów
 
 
         # Komunikat po wygraniu gry
         if (wygrana):
-            print("\nGRATULACJE WYGRAŁEŚ!!!")
+            gracz.zapisz_iczbe_ruchow()
+            obslugaGry.wyswietl_koncowe_menu(gracz)
 
         # Reset zmiennych stanu
         ruch = ""
@@ -473,7 +531,5 @@ if __name__ == "__main__":
         while (decyzjaOGrze != "q" and decyzjaOGrze != "n"):
             decyzjaOGrze = obslugaGry.wyswietl_menu_glowne()
             
-            if (decyzjaOGrze == "q"):
+            if (decyzjaOGrze == "q"): # Zamknij grę
                 gra = False
-        
-                
