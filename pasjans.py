@@ -417,6 +417,9 @@ Poziom: """).strip()
     Ranking:""")
         gracz.wyswietl_ranking_wynikow()
 
+    def wyswietl_nie_mozna_wykonac_ruchu(self):
+        print("Nie można wykonać podanej operacji.")
+
 
 
 # Główna pętla gry
@@ -468,23 +471,28 @@ if __name__ == "__main__":
             # Obsługa komendy 'rk' – przeniesienie karty do stosu końcowego
             elif (ruch == "rk"):
                 obslugaGry.zapisz_stan()
-                przeniesienie_karty_z_rezerwowego_do_koncowego()
-                obslugaGry.wyswietl_stan_gry()
-                wygrana = stosyKoncowe.czy_wygrana()
-
+                if (przeniesienie_karty_z_rezerwowego_do_koncowego()):
+                    obslugaGry.wyswietl_stan_gry()
+                    wygrana = stosyKoncowe.czy_wygrana()
+                else:
+                    obslugaGry.wyswietl_nie_mozna_wykonac_ruchu()
              # Obsługa komendy 'rg X' – z rezerwowego do głównego stosu X
             elif (len(ruch) == 4 and ruch[0:2] == "rg" and "1" <= ruch[3] and ruch[3] <= "7"):
                 obslugaGry.zapisz_stan()
-                przeniesienie_karty_z_rezerwowego_do_glownego(ruch[3])
-                obslugaGry.wyswietl_stan_gry()
-                wygrana = stosyKoncowe.czy_wygrana()
+                if (przeniesienie_karty_z_rezerwowego_do_glownego(ruch[3])):
+                    obslugaGry.wyswietl_stan_gry()
+                    wygrana = stosyKoncowe.czy_wygrana()
+                else:
+                    obslugaGry.wyswietl_nie_mozna_wykonac_ruchu()
 
             # Obsługa komendy 'gk X' – z głównego X do końcowego
             elif (len(ruch) == 4 and ruch[0:2] == "gk" and "1" <= ruch[3] and ruch[3] <= "7"):
                 obslugaGry.zapisz_stan()
-                przeniesienie_karty_z_glownego_do_koncowego(ruch[3])
-                obslugaGry.wyswietl_stan_gry()
-                wygrana = stosyKoncowe.czy_wygrana()
+                if (przeniesienie_karty_z_glownego_do_koncowego(ruch[3])):
+                    obslugaGry.wyswietl_stan_gry()
+                    wygrana = stosyKoncowe.czy_wygrana()
+                else:
+                    obslugaGry.wyswietl_nie_mozna_wykonac_ruchu()
             
             # Obsługa komendy 'gg X Y Z' – przeniesienie Z kart między kolumnami głównymi
             elif (len(ruch) >= 8 and ruch.startswith("gg") and ruch[3] in "1234567" and ruch[5] in "1234567"):
@@ -492,11 +500,13 @@ if __name__ == "__main__":
                     ilosc = int(ruch[7:])  # Liczba kart do przeniesienia
                     if 1 <= ilosc <= 13:
                         obslugaGry.zapisz_stan()
-                        stosGlowny.przeniesienie_kart_z_glownego_do_glownego(ruch[3], ruch[5], ilosc)
-                        obslugaGry.wyswietl_stan_gry()
-                        wygrana = stosyKoncowe.czy_wygrana()
+                        if (stosGlowny.przeniesienie_kart_z_glownego_do_glownego(ruch[3], ruch[5], ilosc)):
+                            obslugaGry.wyswietl_stan_gry()
+                            wygrana = stosyKoncowe.czy_wygrana()
+                        else:
+                            obslugaGry.wyswietl_nie_mozna_wykonac_ruchu()
                 except ValueError:
-                    print("Nieprawidłowa liczba kart.")
+                    obslugaGry.wyswietl_nie_mozna_wykonac_ruchu()
 
             # Cofnięcie ruchu
             elif ruch == "c":
