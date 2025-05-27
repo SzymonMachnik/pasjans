@@ -67,13 +67,13 @@ class StosRezerwowy:
         if (self.trudny == False):
             self.indeks += 1
         else:
-            self.trudnyIndeksPomocniczy = self.indeks + 1
             self.indeks += 3
             if (self.indeks - len(self.karty) >= 2):
                 self.indeks = 2
             while(self.indeks >= len(self.karty) and len(self.karty) > 0):
                 self.indeks -= 1
             if (self.trudnyIndeksPomocniczy > self.indeks): self.trudnyIndeksPomocniczy = 0
+            self.trudnyIndeksPomocniczy = max(0, self.indeks - 2)
 
     # Usuń kartę ze stosu
     def usun_karte(self):
@@ -105,11 +105,13 @@ class StosRezerwowy:
             print("\t\t\t", end="")
         else:
             print(f"P: {self.trudnyIndeksPomocniczy} I: {self.indeks} LEN: {len(self.karty)}")
-            self.trudnyIndeksPomocniczy = min(self.trudnyIndeksPomocniczy, self.indeks)
-            for i in range(self.trudnyIndeksPomocniczy, self.indeks + 1):
-                self.karty[i].pokaz_karte()
-                print(" ", end="") 
-            
+            if (self.indeks >= len(self.karty)):
+                self.indeks = 0
+            if (len(self.karty) > 0):
+                for i in range(self.trudnyIndeksPomocniczy, self.indeks + 1):
+                    self.karty[i].pokaz_karte()
+                    print(" ", end="") 
+                
             # Dodatkowy odstęp przed stosem końcowym
             if (len(self.karty) <= 1): print("\t", end="")
             print("\t\t", end="")
